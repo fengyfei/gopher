@@ -1,0 +1,6 @@
+*.log
+.idea
+
+libchan/client/client
+
+libchan/server/server
