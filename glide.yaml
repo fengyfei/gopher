@@ -1,0 +1,6 @@
+package: github.com/fengyfei/gopher
+import:
+- package: github.com/docker/libchan
+  version: ^0.1.0
+  subpackages:
+  - spdy

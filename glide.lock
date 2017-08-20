@@ -1,0 +1,16 @@
+hash: 1104c9ddf1e65186e53c5775fae66027245a854eab4f2376abdf309221f7e752
+updated: 2017-08-20T18:06:57.998917757+08:00
+imports:
+- name: github.com/dmcgowan/go
+  version: 5d26f5fd8a4e87c22037b52bf41aad8d69e5f436
+  subpackages:
+  - codec
+- name: github.com/docker/libchan
+  version: aea6f64450cfc4145ae3f1a9a821dafd97624f09
+  subpackages:
+  - spdy
+- name: github.com/docker/spdystream
+  version: ed496381df8283605c435b86d4fdd6f4f20b8c6e
+  subpackages:
+  - spdy
+testImports: []
