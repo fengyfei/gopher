@@ -1,16 +1,22 @@
-hash: 1104c9ddf1e65186e53c5775fae66027245a854eab4f2376abdf309221f7e752
-updated: 2017-08-20T18:06:57.998917757+08:00
+hash: 1c42f3f6213396415ba0e6e09e0564dbde472266b798c771cbffbb9e457eea83
+updated: 2017-09-16T15:25:52.193045923+08:00
 imports:
-- name: github.com/dmcgowan/go
-  version: 5d26f5fd8a4e87c22037b52bf41aad8d69e5f436
-  subpackages:
-  - codec
+- name: github.com/allegro/bigcache
+  version: 62de4dac703d67c7309f0ec1c220371b01ac235b
+- name: github.com/coreos/bbolt
+  version: 27600282c683d6ff39ddeca352514611c23540e6
+- name: github.com/dmcgowan/msgpack
+  version: 7b62bc929e75dbc4ae8b640dc69e1bea70a7c283
 - name: github.com/docker/libchan
   version: aea6f64450cfc4145ae3f1a9a821dafd97624f09
   subpackages:
   - spdy
 - name: github.com/docker/spdystream
-  version: ed496381df8283605c435b86d4fdd6f4f20b8c6e
+  version: bc6354cbbc295e925e4c611ffe90c1f287ee54db
   subpackages:
   - spdy
+- name: golang.org/x/sys
+  version: 062cd7e4e68206d8bab9b18396626e855c992658
+  subpackages:
+  - unix
 testImports: []

@@ -4,3 +4,4 @@ import:
   version: ^0.1.0
   subpackages:
   - spdy
+- package: github.com/allegro/bigcache
