@@ -133,7 +133,7 @@ func (usp *UserServiceProvider) Create(name string, payload int) error {
 		log.Printf("[create] marshal error: %v", err)
 		return err
 	}
-	fmt.Println(nameByte)
+
 	err = b.Put(nameByte, payloadByte)
 	if err != nil {
 		log.Printf("[create] put error: %v", err)
