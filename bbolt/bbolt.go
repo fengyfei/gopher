@@ -33,9 +33,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"log"
-	"strconv"
 
 	"github.com/coreos/bbolt"
+	"fmt"
 )
 
 type UserServiceProvider struct{}
@@ -76,11 +76,11 @@ type User struct {
 	Payload int
 }
 
-func (usp *UserServiceProvider) CreateOne(name string, payload int) error {
+func (usp *UserServiceProvider) CreateOne(name string, payload int) (uint64, error) {
 	tx, err := UserDB.Begin(true)
 	if err != nil {
 		log.Printf("[create] begin txn error: %v", err)
-		return err
+		return 0, err
 	}
 	defer tx.Rollback()
 
@@ -88,7 +88,7 @@ func (usp *UserServiceProvider) CreateOne(name string, payload int) error {
 
 	id, err := bucket.NextSequence()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	user := User{
@@ -99,13 +99,13 @@ func (usp *UserServiceProvider) CreateOne(name string, payload int) error {
 
 	if data, err := json.Marshal(&user); err != nil {
 		log.Printf("marshal error: %v", err)
-		return err
+		return 0, err
 	} else if err := bucket.Put(intToByte(int(id)), data); err != nil {
 		log.Printf("put error: %v", err)
-		return err
+		return 0, err
 	}
 
-	return tx.Commit()
+	return id, tx.Commit()
 }
 
 func (usp *UserServiceProvider) Create(name string, payload int) error {
@@ -123,26 +123,21 @@ func (usp *UserServiceProvider) Create(name string, payload int) error {
 
 	b := tx.Bucket([]byte("user"))
 
-	loop := make([]string, 1000000)
 	if payloadByte, err = json.Marshal(&payload); err != nil {
 		log.Printf("[create] marshal error: %v", err)
 		return err
 	}
 
-	for i := range loop {
-		is := strconv.Itoa(i)
-		ns := name + is
-		nameByte, err := json.Marshal(&ns)
-		if err != nil {
-			log.Printf("[create] marshal error: %v", err)
-			return err
-		}
-		err = b.Put(nameByte, payloadByte)
-
-		if err != nil {
-			log.Printf("[create] put error: %v", err)
-			return err
-		}
+	nameByte, err := json.Marshal(&name)
+	if err != nil {
+		log.Printf("[create] marshal error: %v", err)
+		return err
+	}
+	fmt.Println(nameByte)
+	err = b.Put(nameByte, payloadByte)
+	if err != nil {
+		log.Printf("[create] put error: %v", err)
+		return err
 	}
 
 	return tx.Commit()

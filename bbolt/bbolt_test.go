@@ -36,43 +36,43 @@ import (
 )
 
 func BenchmarkUserServiceProvider_Create(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		err := UserService.Create("test", 100)
+	loop := make([]string, 100000)
+
+	for t := range loop {
+		ts := strconv.Itoa(t)
+		name := "test" + ts
+		err := UserService.Create(name, 100)
 		if err != nil {
 			log.Printf("create testing: %v", err)
 		}
+
 	}
 }
 
-func BenchmarkUserServiceProvider_Get(b *testing.B) {
-	loop := make([]string, 1000000)
-
-	for i := 0; i < b.N; i++ {
-		for t := range loop {
-			ts := strconv.Itoa(t)
-			name := "test" + ts
-			_, err := UserService.Get(name)
-			if err != nil {
-				log.Printf("get testing: %v", err)
-			}
-		}
-	}
-}
-
-func BenchmarkUserServiceProvider_CreateOne(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		err := UserService.CreateOne("test", 100)
-		if err != nil {
-			log.Printf("create testing: %v", err)
-		}
-	}
-}
-
-func BenchmarkUserServiceProvider_GetOne(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		_, err := UserService.GetOne(10)
-		if err != nil {
-			log.Printf("get testing: %v", err)
-		}
-	}
-}
+//func BenchmarkUserServiceProvider_Get(b *testing.B) {
+//	loop := make([]string, 1000000)
+//
+//	for t := range loop {
+//		ts := strconv.Itoa(t)
+//		name := "test" + ts
+//		_, err := UserService.Get(name)
+//		if err != nil {
+//			log.Printf("get testing: %v", err)
+//		}
+//	}
+//
+//}
+//
+//func BenchmarkUserServiceProvider_CreateOne(b *testing.B) {
+//	for i := 0; i < b.N; i++ {
+//		id, err := UserService.CreateOne("test_bbolt", 100)
+//		if err != nil {
+//			log.Printf("create testing: %v", err)
+//		}
+//
+//		_, err = UserService.GetOne(id)
+//		if err != nil {
+//			log.Printf("get testing: %v", err)
+//		}
+//	}
+//}
