@@ -5,3 +5,5 @@ import:
   subpackages:
   - spdy
 - package: github.com/allegro/bigcache
+- package: github.com/matryer/vice
+  version: ^0.1.0
