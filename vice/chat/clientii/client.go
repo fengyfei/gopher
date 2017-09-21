@@ -30,17 +30,21 @@
 package main
 
 import (
-	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 
 	"github.com/matryer/vice/queues/nsq"
+
+	"github.com/fengyfei/gopher/vice/chat/common"
 )
 
 func main() {
+	var recvMsg message.Msg
+
 	ctx, cancel := context.WithCancel(context.Background())
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -59,27 +63,12 @@ func main() {
 	}()
 
 	transport := nsq.New()
-	s := transport.Send("receiveFrom1")
-	r := transport.Receive("sendTo1")
+	r := transport.Receive("sendToII")
 
 	go func() {
-		for msg := range r {
-			fmt.Println("Receive message from client2:", string(msg))
-		}
-	}()
-
-	go func() {
-		log.Println("Say something...")
-		scanner := bufio.NewScanner(os.Stdin)
-		for scanner.Scan() {
-			b := scanner.Bytes()
-			if len(b) == 0 {
-				continue
-			}
-			s <- b
-		}
-		if err := scanner.Err(); err != nil {
-			log.Printf("Scan returned error: %s", err.Error())
+		for m := range r {
+			json.Unmarshal(m, &recvMsg)
+			fmt.Printf("%s receive message from %s: %s\n", recvMsg.To, recvMsg.From, recvMsg.Content)
 		}
 	}()
 
@@ -87,5 +76,5 @@ func main() {
 	transport.Stop()
 	<-transport.Done()
 
-	log.Println("Client1 send message successed.")
+	log.Println("Client II receive message successed.")
 }

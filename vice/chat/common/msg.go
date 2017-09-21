@@ -24,44 +24,13 @@
 
 /*
  * Revision History:
- *     Initial: 2017/09/20        Jia Chenhui
+ *     Initial: 2017/09/21        Jia Chenhui
  */
 
-package main
+package message
 
-import (
-	"context"
-	"log"
-
-	"github.com/matryer/vice/queues/nsq"
-)
-
-func Transponder(ctx context.Context, r <-chan []byte, s chan<- []byte, errs <-chan error) {
-	for {
-		select {
-		case <-ctx.Done():
-			log.Println("Chat finished.")
-		case err := <-errs:
-			log.Printf("Transponder retruned error: %s", err.Error())
-		case msg := <-r:
-			log.Println("Receive message from r1, start transpond.")
-			s <- msg
-		}
-	}
-}
-
-func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	transport := nsq.New()
-	defer func() {
-		transport.Stop()
-		<-transport.Done()
-	}()
-
-	r := transport.Receive("receiveFromI")
-	s := transport.Send("sendToII")
-
-	Transponder(ctx, r, s, transport.ErrChan())
+type Msg struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Content string `json:"content"`
 }

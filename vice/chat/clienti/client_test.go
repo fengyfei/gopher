@@ -24,44 +24,41 @@
 
 /*
  * Revision History:
- *     Initial: 2017/09/20        Jia Chenhui
+ *     Initial: 2017/09/21        Jia Chenhui
  */
 
-package main
+package client_test
 
 import (
-	"context"
-	"log"
+	"testing"
+	"time"
+	"fmt"
 
-	"github.com/matryer/vice/queues/nsq"
+	"github.com/fengyfei/gopher/vice/chat/clienti"
+	"github.com/fengyfei/gopher/vice/chat/common"
 )
 
-func Transponder(ctx context.Context, r <-chan []byte, s chan<- []byte, errs <-chan error) {
-	for {
-		select {
-		case <-ctx.Done():
-			log.Println("Chat finished.")
-		case err := <-errs:
-			log.Printf("Transponder retruned error: %s", err.Error())
-		case msg := <-r:
-			log.Println("Receive message from r1, start transpond.")
-			s <- msg
-		}
+func BenchmarkSendToII(b *testing.B) {
+	msg := message.Msg{
+		From:    "I",
+		To:      "II",
+		Content: "send to II from I",
 	}
-}
 
-func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	count := 0
+	timer := time.NewTimer(time.Second)
 
-	transport := nsq.New()
-	defer func() {
-		transport.Stop()
-		<-transport.Done()
-	}()
+loop:
+	for i := 0; i < b.N; i++ {
+		select {
+		case <-timer.C:
+			break loop
+		default:
+		}
 
-	r := transport.Receive("receiveFromI")
-	s := transport.Send("sendToII")
+		go client.SendToII(msg)
+		count = count + 1
+	}
 
-	Transponder(ctx, r, s, transport.ErrChan())
+	fmt.Println("count --->>>", count)
 }
