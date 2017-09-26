@@ -1,12 +1,12 @@
-hash: d1c9078d39330690ecf8b4b1a4620fd1ae89c7f3a377ed0ac3d5311880759696
-updated: 2017-09-20T14:17:15.63777774+08:00
+hash: 6e2d3e95e672b7d46f7266477697e44f54f17f909e148be393f5275e66e80fce
+updated: 2017-09-26T13:36:31.377513+08:00
 imports:
 - name: github.com/allegro/bigcache
-  version: 62de4dac703d67c7309f0ec1c220371b01ac235b
+  version: aa76879d59fa5d93c43680238227dbf7a53f5c28
   subpackages:
   - queue
 - name: github.com/coreos/bbolt
-  version: 27600282c683d6ff39ddeca352514611c23540e6
+  version: 700b8ead147093f33e738a9b6487d1ad9938b1cb
 - name: github.com/dmcgowan/go
   version: 5d26f5fd8a4e87c22037b52bf41aad8d69e5f436
   subpackages:
@@ -19,10 +19,19 @@ imports:
   version: bc6354cbbc295e925e4c611ffe90c1f287ee54db
   subpackages:
   - spdy
+- name: github.com/golang/snappy
+  version: 553a641470496b2327abcac10b36396bd98e45c9
+- name: github.com/graphql-go/graphql
+  version: 105a6c24e6fdaf4008e56d947115a1a13dc46430
 - name: github.com/matryer/vice
   version: b43d8efdd2a26ca83fec74eaec9273f8c3f06d67
+  subpackages:
+  - backoff
+  - queues/nsq
+- name: github.com/nsqio/go-nsq
+  version: eee57a3ac4174c55924125bb15eeeda8cffb6e6f
 - name: golang.org/x/sys
-  version: b6e1ae21643682ce023deb8d152024597b0e9bb4
+  version: 429f518978ab01db8bb6f44b66785088e7fba58b
   subpackages:
   - unix
 testImports: []

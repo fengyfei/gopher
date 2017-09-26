@@ -7,3 +7,5 @@ import:
 - package: github.com/allegro/bigcache
 - package: github.com/matryer/vice
   version: ^0.1.0
+- package: github.com/graphql-go/graphql
+  version: ^0.7.2
