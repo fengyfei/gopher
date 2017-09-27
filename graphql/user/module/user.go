@@ -46,16 +46,6 @@ type User struct {
 	Active string `json:"active"`
 }
 
-type UserProfile struct {
-	Permissions []string `json:"permissions"`
-}
-
-type userDetails struct {
-	username string
-	admin    bool
-	active   bool
-}
-
 var (
 	// user data structure
 	userType = graphql.NewObject(graphql.ObjectConfig{
@@ -70,44 +60,36 @@ var (
 			"active": &graphql.Field{
 				Type: graphql.String,
 			},
-			"permissions": &graphql.Field{
-				Type: graphql.NewList(graphql.String),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					var profile UserProfile
-					err := mongo.MDB.C("profiles").Find(bson.M{}).One(&profile)
-					if err != nil {
-						log.Printf("Find returned error: %v", err)
-						return nil, err
-					}
-					return profile.Permissions, err
-				},
-			},
 		},
 	})
 )
 
 var (
 	// query data
+	// get: curl -g 'http://localhost:8989/graphql?query={user(login:"jch"){login,admin,active}}'
 	fields = graphql.Fields{
 		"hello": &graphql.Field{
-			Type: graphql.String,
+			Type:        graphql.String,
+			Description: "Hello world",
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				fmt.Println(p.Args)
 				return "world", nil
 			},
 		},
 		"user": &graphql.Field{
-			Type: userType,
+			Type:        userType,
+			Description: "Get single user info",
 			Args: graphql.FieldConfigArgument{
 				"login": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				var u User
+
 				login := p.Args["login"].(string)
 
-				var u User
-				err := mongo.MDB.C("users").Find(bson.M{"username": login}).One(&u)
+				err := mongo.MDB.C("users").Find(bson.M{"login": login}).One(&u)
 				if err != nil {
 					log.Printf("MongoDB.Find returned error: %v", err)
 					return nil, err
@@ -118,10 +100,42 @@ var (
 		},
 	}
 
-	// update data
+	// mutation data
+	// create: curl -g 'http://localhost:8989/graphql?query=mutation+_{addNewUser(login:"jch",admin:"yes",active:"yes"){login,admin,active}}'
 	mutations = graphql.Fields{
+		"addNewUser": &graphql.Field{
+			Type:        userType,
+			Description: "Add new user",
+			Args: graphql.FieldConfigArgument{
+				"login": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+				"admin": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+				"active": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				user := User{
+					Login:  p.Args["login"].(string),
+					Admin:  p.Args["admin"].(string),
+					Active: p.Args["active"].(string),
+				}
+
+				err := mongo.MDB.C("users").Insert(&user)
+				if err != nil {
+					log.Printf("MD.Insert returned error: %v", err)
+				}
+
+				return err == nil, err
+			},
+		},
+
 		"addPermission": &graphql.Field{
-			Type: graphql.Boolean,
+			Type:        graphql.Boolean,
+			Description: "Add permission to user",
 			Args: graphql.FieldConfigArgument{
 				"login": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.String),
