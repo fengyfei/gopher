@@ -38,12 +38,12 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/labstack/echo"
 
-	"github.com/fengyfei/gopher/graphql/user/module"
+	"github.com/fengyfei/gopher/graphql/user/schema"
 )
 
 func UserHandler(c echo.Context) error {
 	params := graphql.Params{
-		Schema:        module.UserSchema,
+		Schema:        schema.UserSchema,
 		RequestString: c.Request().URL.Query().Get("query"),
 	}
 
