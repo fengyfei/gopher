@@ -132,31 +132,6 @@ var (
 				return err == nil, err
 			},
 		},
-
-		"addPermission": &graphql.Field{
-			Type:        graphql.Boolean,
-			Description: "Add permission to user",
-			Args: graphql.FieldConfigArgument{
-				"login": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.String),
-				},
-				"permission": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.String),
-				},
-			},
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				login := p.Args["login"].(string)
-				permission := p.Args["permission"].(string)
-
-				err := mongo.MDB.C("profiles").Update(bson.M{"_id": login}, bson.M{
-					"$addToSet": bson.M{
-						"permissions": permission,
-					},
-				})
-
-				return err == nil, err
-			},
-		},
 	}
 )
 
