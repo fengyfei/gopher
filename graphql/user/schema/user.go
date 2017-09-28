@@ -30,6 +30,8 @@
 package schema
 
 import (
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/graphql-go/graphql"
@@ -46,6 +48,23 @@ func init() {
 	}
 
 	UserSchema = s
+}
+
+// ExecQuery execute the query.
+func ExecQuery(query string, schema graphql.Schema) (*graphql.Result, error) {
+	p := graphql.Params{
+		Schema:        schema,
+		RequestString: query,
+	}
+
+	result := graphql.Do(p)
+	if result.HasErrors() {
+		log.Printf("Wrong result, unexpected errors: %v", result.Errors)
+		err := errors.New(fmt.Sprintf("%v", result.Errors))
+		return nil, err
+	}
+
+	return result, nil
 }
 
 var (

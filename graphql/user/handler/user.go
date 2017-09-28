@@ -30,27 +30,18 @@
 package handler
 
 import (
-	"errors"
-	"fmt"
-	"log"
 	"net/http"
 
-	"github.com/graphql-go/graphql"
 	"github.com/labstack/echo"
 
 	"github.com/fengyfei/gopher/graphql/user/schema"
 )
 
 func UserHandler(c echo.Context) error {
-	params := graphql.Params{
-		Schema:        schema.UserSchema,
-		RequestString: c.Request().URL.Query().Get("query"),
-	}
+	query := c.Request().URL.Query().Get("query")
 
-	result := graphql.Do(params)
-	if result.HasErrors() {
-		log.Printf("Failed due to errors: %v\n", result.Errors)
-		err := errors.New(fmt.Sprintf("%v", result.Errors))
+	result, err := schema.ExecQuery(query, schema.UserSchema)
+	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
