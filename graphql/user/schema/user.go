@@ -30,7 +30,6 @@
 package schema
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/graphql-go/graphql"
@@ -38,9 +37,7 @@ import (
 	"github.com/fengyfei/gopher/graphql/user/module"
 )
 
-var (
-	UserSchema graphql.Schema
-)
+var UserSchema graphql.Schema
 
 func init() {
 	s, err := graphql.NewSchema(schemaConfig)
@@ -62,7 +59,7 @@ var (
 )
 
 var (
-	// user data structure
+	// User data structure
 	userType = graphql.NewObject(graphql.ObjectConfig{
 		Name: "User",
 		Fields: graphql.Fields{
@@ -81,25 +78,17 @@ var (
 
 var (
 	// query data
-	// get: curl -g 'http://localhost:8989/graphql?query={user(login:"jch"){login,admin,active}}'
+	// get: curl -g 'http://localhost:8989/graphql?query={getUser(login:"jch"){login,admin,active}}'
 	// An example GraphQL query might look like:
 	/*
 		{
-			user(login: "leon") {
+			getUser(login: "leon") {
 				login, admin, active
 			  }
 			}
 	*/
 	fields = graphql.Fields{
-		"hello": &graphql.Field{
-			Type:        graphql.String,
-			Description: "Hello world",
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				fmt.Println(p.Args)
-				return "world", nil
-			},
-		},
-		"user": &graphql.Field{
+		"getUser": &graphql.Field{
 			Type:        userType,
 			Description: "Get single user info",
 			Args: graphql.FieldConfigArgument{
@@ -107,24 +96,24 @@ var (
 					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
-			Resolve: module.GetSingleInfo,
+			Resolve: Get,
 		},
 	}
 
 	// mutation data
-	// create: curl -g 'http://localhost:8989/graphql?query=mutation+_{addNewUser(login:"jch",admin:"yes",active:"yes"){login,admin,active}}'
+	// create: curl -g 'http://localhost:8989/graphql?query=mutation+_{createUser(login:"jch",admin:"yes",active:"yes"){login,admin,active}}'
 	// An example GraphQL mutation might look like:
 	/*
 		mutation {
-		  addNewUser(login: "leon", admin: "true", active: "true") {
+		  createUser(login: "leon", admin: "true", active: "true") {
 		    login, admin, active
 		  }
 		}
 	*/
 	mutations = graphql.Fields{
-		"addNewUser": &graphql.Field{
+		"createUser": &graphql.Field{
 			Type:        userType,
-			Description: "Add new user",
+			Description: "Create a new user",
 			Args: graphql.FieldConfigArgument{
 				"login": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.String),
@@ -136,7 +125,37 @@ var (
 					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
-			Resolve: module.Create,
+			Resolve: Create,
 		},
 	}
 )
+
+// GetSingle get single user information.
+func Get(p graphql.ResolveParams) (interface{}, error) {
+	login := p.Args["login"].(string)
+
+	user, err := module.UserService.Get(login)
+	if err != nil {
+		log.Printf("Get user returned error: %v", err)
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// Create create single user.
+func Create(p graphql.ResolveParams) (interface{}, error) {
+	user := module.User{
+		Login:  p.Args["login"].(string),
+		Admin:  p.Args["admin"].(string),
+		Active: p.Args["active"].(string),
+	}
+
+	ok, err := module.UserService.Create(&user)
+	if err != nil {
+		log.Printf("Create user returned error: %v", err)
+		return nil, err
+	}
+
+	return ok, nil
+}

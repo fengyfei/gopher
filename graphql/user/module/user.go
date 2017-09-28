@@ -30,13 +30,21 @@
 package module
 
 import (
-	"log"
-
-	"github.com/graphql-go/graphql"
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/fengyfei/gopher/graphql/user/mongo"
 )
+
+type UserServiceProvider struct {
+}
+
+var (
+	UserService *UserServiceProvider
+)
+
+func init() {
+	UserService = &UserServiceProvider{}
+}
 
 // user struct
 type User struct {
@@ -46,34 +54,25 @@ type User struct {
 }
 
 // GetSingleInfo get single user information.
-func GetSingleInfo(p graphql.ResolveParams) (interface{}, error) {
+func (usp *UserServiceProvider) Get(login string) (User, error) {
 	var (
 		u User
 	)
 
-	login := p.Args["login"].(string)
-
 	err := mongo.MDB.C("users").Find(bson.M{"login": login}).One(&u)
-	if err != nil {
-		log.Printf("GetSingleInfo returned error: %v", err)
-		return nil, err
-	}
 
-	return u, nil
+	return u, err
 }
 
 // Create create single user.
-func Create(p graphql.ResolveParams) (interface{}, error) {
-	user := User{
-		Login:  p.Args["login"].(string),
-		Admin:  p.Args["admin"].(string),
-		Active: p.Args["active"].(string),
+func (usp *UserServiceProvider) Create(user *User) (bool, error) {
+	u := User{
+		Login:  user.Login,
+		Admin:  user.Admin,
+		Active: user.Active,
 	}
 
-	err := mongo.MDB.C("users").Insert(&user)
-	if err != nil {
-		log.Printf("Create user returned error: %v", err)
-	}
+	err := mongo.MDB.C("users").Insert(&u)
 
 	return err == nil, err
 }

@@ -51,7 +51,7 @@ func UserHandler(c echo.Context) error {
 	if result.HasErrors() {
 		log.Printf("Failed due to errors: %v\n", result.Errors)
 		err := errors.New(fmt.Sprintf("%v", result.Errors))
-		return err
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
 	return c.JSON(http.StatusOK, result.Data)
