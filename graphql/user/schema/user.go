@@ -82,6 +82,14 @@ var (
 var (
 	// query data
 	// get: curl -g 'http://localhost:8989/graphql?query={user(login:"jch"){login,admin,active}}'
+	// An example GraphQL query might look like:
+	/*
+		{
+			user(login: "leon") {
+				login, admin, active
+			  }
+			}
+	*/
 	fields = graphql.Fields{
 		"hello": &graphql.Field{
 			Type:        graphql.String,
@@ -105,6 +113,14 @@ var (
 
 	// mutation data
 	// create: curl -g 'http://localhost:8989/graphql?query=mutation+_{addNewUser(login:"jch",admin:"yes",active:"yes"){login,admin,active}}'
+	// An example GraphQL mutation might look like:
+	/*
+		mutation {
+		  addNewUser(login: "leon", admin: "true", active: "true") {
+		    login, admin, active
+		  }
+		}
+	*/
 	mutations = graphql.Fields{
 		"addNewUser": &graphql.Field{
 			Type:        userType,
