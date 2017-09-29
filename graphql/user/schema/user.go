@@ -37,6 +37,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/fengyfei/gopher/graphql/user/module"
+	"github.com/fengyfei/gopher/graphql/user/util"
 )
 
 var UserSchema graphql.Schema
@@ -68,12 +69,14 @@ func ExecQuery(query string, schema graphql.Schema) (*graphql.Result, error) {
 }
 
 var (
-	rootQuery    = graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
-	rootMutation = graphql.ObjectConfig{Name: "RootMutation", Fields: mutations}
+	rootQuery        = graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
+	rootMutation     = graphql.ObjectConfig{Name: "RootMutation", Fields: mutations}
+	rootSubscription = graphql.ObjectConfig{Name: "RootSubscription", Fields: subscription}
 
 	schemaConfig = graphql.SchemaConfig{
-		Query:    graphql.NewObject(rootQuery),
-		Mutation: graphql.NewObject(rootMutation),
+		Query:        graphql.NewObject(rootQuery),
+		Mutation:     graphql.NewObject(rootMutation),
+		Subscription: graphql.NewObject(rootSubscription),
 	}
 )
 
@@ -101,10 +104,10 @@ var (
 	// An example GraphQL query might look like:
 	/*
 		{
-			getUser(login: "leon") {
-				login, admin, active
-			  }
-			}
+		  getUser(login: "leon") {
+			login, admin, active
+		  }
+		}
 	*/
 	fields = graphql.Fields{
 		"getUser": &graphql.Field{
@@ -145,6 +148,29 @@ var (
 				},
 			},
 			Resolve: Create,
+		},
+	}
+
+	// subscription to user information
+	/*
+		subscription {
+		  subscribeUser(postId:"a"){
+		  	admin, active
+		  }
+		}
+	*/
+	subscription = graphql.Fields{
+		"subscribeUser": &graphql.Field{
+			Type:        userType,
+			Description: "Subscribe to user information",
+			Args: graphql.FieldConfigArgument{
+				"login": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				return util.RandSeq(10), nil
+			},
 		},
 	}
 )
