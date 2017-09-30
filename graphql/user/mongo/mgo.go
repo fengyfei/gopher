@@ -30,22 +30,30 @@
 package mongo
 
 import (
+	"github.com/fengyfei/nuts/mgo/copy"
 	"gopkg.in/mgo.v2"
 )
 
-var MDB *mgo.Database
+var (
+	CollName string = "users"
+	DBName   string = "graphql"
+	MDInfo   *copy.CollectionInfo
+)
 
 func init() {
-	MDB = InitMDSession("localhost").DB("users")
+	MDInfo = InitMDInfo("localhost")
 }
 
-func InitMDSession(url string) *mgo.Session {
+func InitMDInfo(url string) *copy.CollectionInfo {
 	s, err := mgo.Dial(url)
 	if err != nil {
 		panic(err)
 	}
 
-	s.SetMode(mgo.Monotonic, true)
-
-	return s
+	return &copy.CollectionInfo{
+		Session:    s,
+		Database:   DBName,
+		Collection: CollName,
+		Index:      nil,
+	}
 }

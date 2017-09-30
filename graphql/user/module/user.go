@@ -33,6 +33,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/fengyfei/gopher/graphql/user/mongo"
+	"github.com/fengyfei/nuts/mgo/copy"
 )
 
 type UserServiceProvider struct {
@@ -59,7 +60,8 @@ func (usp *UserServiceProvider) Get(login string) (User, error) {
 		u User
 	)
 
-	err := mongo.MDB.C("users").Find(bson.M{"login": login}).One(&u)
+	query := bson.M{"login": login}
+	err := copy.GetUniqueOne(mongo.MDInfo, query, &u)
 
 	return u, err
 }
@@ -72,7 +74,7 @@ func (usp *UserServiceProvider) Create(user *User) (bool, error) {
 		Active: user.Active,
 	}
 
-	err := mongo.MDB.C("users").Insert(&u)
+	err := copy.Insert(mongo.MDInfo, &u)
 
 	return err == nil, err
 }
