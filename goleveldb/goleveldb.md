@@ -5,42 +5,47 @@
    goos: darwin
    goarch: amd64
    pkg: github.com/fengyfei/gopher/goleveldb
-   BenchmarkAccountServiceProvider_Create-4          100000             12619 ns/op
+   BenchmarkAccountServiceProvider_Create-4             300           7413778 ns/op
    PASS
-   ok      github.com/fengyfei/gopher/goleveldb    1.430s
+   ok      github.com/fengyfei/gopher/goleveldb    2.742s
    ```
 
 2. 单独顺序读操作测试结果：
 
    ```shell
-     300000             17967 ns/op
+   ❯ go test -bench=.
+   goos: darwin
+   goarch: amd64
+   pkg: github.com/fengyfei/gopher/goleveldb
+   BenchmarkAccountServiceProvider_Get-4                200           7633436 ns/op
    PASS
-   ok      github.com/fengyfei/gopher/goleveldb    5.513s
+   ok      github.com/fengyfei/gopher/goleveldb    2.342s
    ```
 
-3. 写和读顺序执行测试结果：
+3. 单独随机读操作测试结果：
 
    ```shell
-   # 写入、顺序读取顺序执行
    ❯ go test -bench=.
    goos: darwin
    goarch: amd64
    pkg: github.com/fengyfei/gopher/goleveldb
-   BenchmarkAccountServiceProvider_Create-4          200000             12058 ns/op
-   BenchmarkAccountServiceProvider_Get-4             200000              5638 ns/op
+   BenchmarkAccountServiceProvider_GetRandom-4          100          10337479 ns/op
    PASS
-   ok      github.com/fengyfei/gopher/goleveldb    4.558s
+   ok      github.com/fengyfei/gopher/goleveldb    1.052s
+   ```
 
+4. 写和读顺序执行测试结果：
+
+   ```shell
    # 写入、顺序读取、随机读取顺序执行
-   gopher/goleveldb git/master*  
    ❯ go test -bench=.
    goos: darwin
    goarch: amd64
    pkg: github.com/fengyfei/gopher/goleveldb
-   BenchmarkAccountServiceProvider_Create-4          100000             12035 ns/op
-   BenchmarkAccountServiceProvider_Get-4             200000              6127 ns/op
-   BenchmarkAccountServiceProvider_GetRandom-4       200000              6725 ns/op
+   BenchmarkAccountServiceProvider_Create-4             300           8146472 ns/op
+   BenchmarkAccountServiceProvider_Get-4                200           7514547 ns/op
+   BenchmarkAccountServiceProvider_GetRandom-4          200           7402362 ns/op
    PASS
-   ok      github.com/fengyfei/gopher/goleveldb    4.046s
+   ok      github.com/fengyfei/gopher/goleveldb    7.468s
    ```
 

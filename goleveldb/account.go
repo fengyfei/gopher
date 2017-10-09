@@ -41,23 +41,11 @@ type AccountServiceProvider struct{}
 
 var (
 	AccountService *AccountServiceProvider = &AccountServiceProvider{}
-	AccountDB      *leveldb.DB
 	IDGen          *UniqueIDGenerator
 )
 
 func init() {
-	AccountDB = NewDB("account.db")
 	IDGen = NewGenerator(0)
-}
-
-func NewDB(url string) *leveldb.DB {
-	db, err := leveldb.OpenFile(url, nil)
-	if err != nil {
-		fmt.Printf("init db error: %v", err)
-		panic(err)
-	}
-
-	return db
 }
 
 type Account struct {
@@ -66,6 +54,13 @@ type Account struct {
 }
 
 func (asp *AccountServiceProvider) Create(name string, balance int) error {
+	db, err := leveldb.OpenFile("account.db", nil)
+	if err != nil {
+		return err
+	}
+
+	defer db.Close()
+
 	a := Account{
 		Name:    name,
 		Balance: balance,
@@ -80,7 +75,7 @@ func (asp *AccountServiceProvider) Create(name string, balance int) error {
 	id := IDGen.Next()
 	idByte := intToByte(int(id))
 
-	err = AccountDB.Put(idByte, ab, nil)
+	err = db.Put(idByte, ab, nil)
 	if err != nil {
 		fmt.Printf("Put returned error: %v\n", err)
 		return err
@@ -94,9 +89,16 @@ func (asp *AccountServiceProvider) Get(id int) (*Account, error) {
 		a Account
 	)
 
+	db, err := leveldb.OpenFile("account.db", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	defer db.Close()
+
 	idByte := intToByte(id)
 
-	data, err := AccountDB.Get(idByte, nil)
+	data, err := db.Get(idByte, nil)
 	if err != nil {
 		fmt.Printf("Get returned error: %v\n", err)
 		return nil, err
