@@ -64,3 +64,12 @@ func BenchmarkAccountServiceProvider_GetRandom(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkAccountServiceProvider_BatchCreate(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		err := account.AccountService.BatchCreate("test", 100)
+		if err != nil {
+			log.Printf("Create batch testing error: %v\n", err)
+		}
+	}
+}

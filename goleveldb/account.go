@@ -113,6 +113,42 @@ func (asp *AccountServiceProvider) Get(id int) (*Account, error) {
 	return &a, nil
 }
 
+func (asp *AccountServiceProvider) BatchCreate(name string, balance int) error {
+	db, err := leveldb.OpenFile("account.db", nil)
+	if err != nil {
+		return err
+	}
+
+	defer db.Close()
+
+	b := new(leveldb.Batch)
+
+	for i := 0; i < 1000000; i++ {
+		a := Account{
+			Name:    name,
+			Balance: balance,
+		}
+
+		ab, err := json.Marshal(&a)
+		if err != nil {
+			fmt.Printf("json.Marshal returned error: %v\n", err)
+			return err
+		}
+
+		idByte := intToByte(i)
+
+		b.Put(idByte, ab)
+	}
+
+	err = db.Write(b, nil)
+	if err != nil {
+		fmt.Printf("Write batch returned error: %v\n", err)
+		return err
+	}
+
+	return nil
+}
+
 func intToByte(v int) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(v))

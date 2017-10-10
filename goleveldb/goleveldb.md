@@ -49,3 +49,18 @@
    ok      github.com/fengyfei/gopher/goleveldb    7.468s
    ```
 
+5. batch 写入测试结果：
+
+   ```shell
+   # 1000000 次循环写入 batch 后再写入 db
+   ❯ go test -bench=.
+   goos: darwin
+   goarch: amd64
+   pkg: github.com/fengyfei/gopher/goleveldb
+   BenchmarkAccountServiceProvider_BatchCreate-4                  1        3891240317 ns/op
+   PASS
+   ok      github.com/fengyfei/gopher/goleveldb    3.929s
+   ```
+
+   ​
+
