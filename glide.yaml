@@ -9,3 +9,18 @@ import:
   version: ^0.1.0
 - package: github.com/graphql-go/graphql
   version: ^0.7.2
+- package: golang.org/x/sys
+  subpackages:
+  - unix
+- package: golang.org/x/net
+  subpackages:
+  - html
+- package: golang.org/x/crypto
+  subpackages:
+  - acme
+- package: golang.org/x/text
+  subpackages:
+  - encoding
+  - transform
+- package: github.com/nats-io/go-nats-streaming
+  version: v0.3.4
