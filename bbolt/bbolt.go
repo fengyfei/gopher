@@ -30,12 +30,9 @@
 package bbolt
 
 import (
-	"encoding/binary"
-	"encoding/json"
 	"log"
 
 	"github.com/coreos/bbolt"
-	"fmt"
 )
 
 type UserServiceProvider struct{}
@@ -70,80 +67,25 @@ func Open() error {
 	return tx.Commit()
 }
 
-type User struct {
-	Id      uint64
-	Name    string
-	Payload int
-}
-
-func (usp *UserServiceProvider) CreateOne(name string, payload int) (uint64, error) {
+func (usp *UserServiceProvider) Put(buc string, key string, payload string) error {
 	tx, err := UserDB.Begin(true)
 	if err != nil {
 		log.Printf("[create] begin txn error: %v", err)
-		return 0, err
+		return err
 	}
 	defer tx.Rollback()
 
-	bucket := tx.Bucket([]byte("user"))
+	bucket := tx.Bucket([]byte(buc))
 
-	id, err := bucket.NextSequence()
-	if err != nil {
-		return 0, err
-	}
-
-	user := User{
-		Id:      id,
-		Name:    name,
-		Payload: payload,
-	}
-
-	if data, err := json.Marshal(&user); err != nil {
-		log.Printf("marshal error: %v", err)
-		return 0, err
-	} else if err := bucket.Put(intToByte(int(id)), data); err != nil {
+	if err := bucket.Put([]byte(key), []byte(payload)); err != nil {
 		log.Printf("put error: %v", err)
-		return 0, err
-	}
-
-	return id, tx.Commit()
-}
-
-func (usp *UserServiceProvider) Create(name string, payload int) error {
-	var (
-		payloadByte []byte
-		err         error
-	)
-
-	tx, err := UserDB.Begin(true)
-	if err != nil {
-		log.Printf("[create] begin txn error: %v", err)
-		return err
-	}
-	defer tx.Rollback()
-
-	b := tx.Bucket([]byte("user"))
-
-	if payloadByte, err = json.Marshal(&payload); err != nil {
-		log.Printf("[create] marshal error: %v", err)
-		return err
-	}
-
-	nameByte, err := json.Marshal(&name)
-	if err != nil {
-		log.Printf("[create] marshal error: %v", err)
-		return err
-	}
-
-	err = b.Put(nameByte, payloadByte)
-	if err != nil {
-		log.Printf("[create] put error: %v", err)
 		return err
 	}
 
 	return tx.Commit()
 }
 
-func (usp *UserServiceProvider) GetOne(id uint64) (*User, error) {
+func (usp *UserServiceProvider) Get(bucket string, key string) ([]byte, error) {
 	tx, err := UserDB.Begin(false)
 	if err != nil {
 		log.Printf("[get] begin txn error: %v", err)
@@ -151,50 +93,7 @@ func (usp *UserServiceProvider) GetOne(id uint64) (*User, error) {
 	}
 	defer tx.Rollback()
 
-	var a User
+	v := tx.Bucket([]byte(bucket)).Get([]byte(key))
 
-	if v := tx.Bucket([]byte("user")).Get(intToByte(int(id))); v == nil {
-		log.Print("get no record")
-		return nil, nil
-	} else if err := json.Unmarshal(v, &a); err != nil {
-		log.Printf("unmarshal error: %v", err)
-		return nil, err
-	}
-
-	return &a, nil
-}
-
-func (usp *UserServiceProvider) Get(name string) (int, error) {
-	var (
-		payload int
-	)
-
-	tx, err := UserDB.Begin(false)
-	if err != nil {
-		log.Printf("[get] begin txn error: %v", err)
-		return 0, err
-	}
-	defer tx.Rollback()
-
-	nameByte, err := json.Marshal(&name)
-	if err != nil {
-		log.Printf("[get] marshal error: %v", err)
-		return 0, err
-	}
-
-	if v := tx.Bucket([]byte("user")).Get(nameByte); v == nil {
-		log.Print("[get] return nil value")
-		return 0, nil
-	} else if err := json.Unmarshal(v, &payload); err != nil {
-		log.Printf("[get] unmarshal error: %v", err)
-		return 0, err
-	}
-
-	return payload, nil
-}
-
-func intToByte(v int) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(v))
-	return b
+	return v, nil
 }

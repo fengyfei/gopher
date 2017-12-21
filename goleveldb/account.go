@@ -31,7 +31,6 @@ package account
 
 import (
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 
 	"github.com/syndtr/goleveldb/leveldb"
@@ -44,38 +43,15 @@ var (
 	IDGen          *UniqueIDGenerator
 )
 
-func init() {
-	IDGen = NewGenerator(0)
-}
-
-type Account struct {
-	Name    string
-	Balance int
-}
-
-func (asp *AccountServiceProvider) Create(name string, balance int) error {
+func (asp *AccountServiceProvider) Create(id int, name string, info string) error {
 	db, err := leveldb.OpenFile("account.db", nil)
 	if err != nil {
 		return err
 	}
-
 	defer db.Close()
 
-	a := Account{
-		Name:    name,
-		Balance: balance,
-	}
-
-	ab, err := json.Marshal(&a)
-	if err != nil {
-		fmt.Printf("json.Marshal returned error: %v\n", err)
-		return err
-	}
-
-	id := IDGen.Next()
 	idByte := intToByte(int(id))
-
-	err = db.Put(idByte, ab, nil)
+	err = db.Put(idByte, []byte(info), nil)
 	if err != nil {
 		fmt.Printf("Put returned error: %v\n", err)
 		return err
@@ -84,69 +60,21 @@ func (asp *AccountServiceProvider) Create(name string, balance int) error {
 	return nil
 }
 
-func (asp *AccountServiceProvider) Get(id int) (*Account, error) {
-	var (
-		a Account
-	)
-
+func (asp *AccountServiceProvider) Get(id int) ([]byte, error) {
 	db, err := leveldb.OpenFile("account.db", nil)
 	if err != nil {
 		return nil, err
 	}
-
 	defer db.Close()
 
 	idByte := intToByte(id)
 
 	data, err := db.Get(idByte, nil)
 	if err != nil {
-		fmt.Printf("Get returned error: %v\n", err)
 		return nil, err
 	}
 
-	err = json.Unmarshal(data, &a)
-	if err != nil {
-		fmt.Printf("json.Unmarshal returned error: %v\n", err)
-		return nil, err
-	}
-
-	return &a, nil
-}
-
-func (asp *AccountServiceProvider) BatchCreate(name string, balance int) error {
-	db, err := leveldb.OpenFile("account.db", nil)
-	if err != nil {
-		return err
-	}
-
-	defer db.Close()
-
-	b := new(leveldb.Batch)
-
-	for i := 0; i < 1000000; i++ {
-		a := Account{
-			Name:    name,
-			Balance: balance,
-		}
-
-		ab, err := json.Marshal(&a)
-		if err != nil {
-			fmt.Printf("json.Marshal returned error: %v\n", err)
-			return err
-		}
-
-		idByte := intToByte(i)
-
-		b.Put(idByte, ab)
-	}
-
-	err = db.Write(b, nil)
-	if err != nil {
-		fmt.Printf("Write batch returned error: %v\n", err)
-		return err
-	}
-
-	return nil
+	return data, nil
 }
 
 func intToByte(v int) []byte {

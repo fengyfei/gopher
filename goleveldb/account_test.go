@@ -33,43 +33,26 @@ import (
 	"log"
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/fengyfei/gopher/goleveldb"
 )
 
 func BenchmarkAccountServiceProvider_Create(b *testing.B) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < b.N; i++ {
-		err := account.AccountService.Create("test", 100)
+		id := r.Intn(b.N)
+		err := account.AccountService.Create(id, "test", "test")
 		if err != nil {
 			log.Printf("CreateOne testing error: %v\n", err)
 		}
 	}
 }
 
-func BenchmarkAccountServiceProvider_Get(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		_, err := account.AccountService.Get(i)
-		if err != nil {
-			log.Printf("GetOne sequential testing error: %v\n", err)
-		}
-	}
-}
-
 func BenchmarkAccountServiceProvider_GetRandom(b *testing.B) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < b.N; i++ {
-		id := rand.Intn(b.N)
-		_, err := account.AccountService.Get(id)
-		if err != nil {
-			log.Printf("GetOne random testing returned error: %v\n", err)
-		}
-	}
-}
-
-func BenchmarkAccountServiceProvider_BatchCreate(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		err := account.AccountService.BatchCreate("test", 100)
-		if err != nil {
-			log.Printf("Create batch testing error: %v\n", err)
-		}
+		id := r.Intn(b.N)
+		account.AccountService.Get(id)
 	}
 }

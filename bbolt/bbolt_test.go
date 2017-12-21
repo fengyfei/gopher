@@ -30,49 +30,32 @@
 package bbolt
 
 import (
+	"fmt"
 	"log"
+	"math/rand"
 	"strconv"
 	"testing"
+	"time"
 )
 
-func BenchmarkUserServiceProvider_Create(b *testing.B) {
-	loop := make([]string, 100000)
-
-	for t := range loop {
-		ts := strconv.Itoa(t)
-		name := "test" + ts
-		err := UserService.Create(name, 100)
+func BenchmarkUserServiceProvider_Put(b *testing.B) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < b.N; i++ {
+		name := fmt.Sprintf("test%s", strconv.Itoa(r.Intn(b.N)))
+		err := UserService.Put("user", name, name)
 		if err != nil {
 			log.Printf("create testing: %v", err)
 		}
-
 	}
 }
 
-//func BenchmarkUserServiceProvider_Get(b *testing.B) {
-//	loop := make([]string, 1000000)
-//
-//	for t := range loop {
-//		ts := strconv.Itoa(t)
-//		name := "test" + ts
-//		_, err := UserService.Get(name)
-//		if err != nil {
-//			log.Printf("get testing: %v", err)
-//		}
-//	}
-//
-//}
-//
-//func BenchmarkUserServiceProvider_CreateOne(b *testing.B) {
-//	for i := 0; i < b.N; i++ {
-//		id, err := UserService.CreateOne("test_bbolt", 100)
-//		if err != nil {
-//			log.Printf("create testing: %v", err)
-//		}
-//
-//		_, err = UserService.GetOne(id)
-//		if err != nil {
-//			log.Printf("get testing: %v", err)
-//		}
-//	}
-//}
+func BenchmarkUserServiceProvider_Get(b *testing.B) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < b.N; i++ {
+		name := fmt.Sprintf("test%s", strconv.Itoa(r.Intn(b.N)))
+		_, err := UserService.Get("user", name)
+		if err != nil {
+			log.Printf("get testing: %v", err)
+		}
+	}
+}
