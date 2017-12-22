@@ -371,7 +371,6 @@ func TestEntryBiggerThanMaxShardSizeError(t *testing.T) {
 func TestHashCollision(t *testing.T) {
 	t.Parallel()
 
-	ml := &mockedLogger{}
 	// given
 	cache, _ := NewBigCache(Config{
 		Shards:             16,
@@ -380,7 +379,6 @@ func TestHashCollision(t *testing.T) {
 		MaxEntrySize:       256,
 		Verbose:            true,
 		Hasher:             hashStub(5),
-		Logger:             ml,
 	})
 
 	// when
@@ -405,18 +403,6 @@ func TestHashCollision(t *testing.T) {
 	// then
 	assert.Error(t, err)
 	assert.Nil(t, cachedValue)
-
-	assert.NotEqual(t, "", ml.lastFormat)
-}
-
-type mockedLogger struct {
-	lastFormat string
-	lastArgs   []interface{}
-}
-
-func (ml *mockedLogger) Printf(format string, v ...interface{}) {
-	ml.lastFormat = format
-	ml.lastArgs = v
 }
 
 type mockedClock struct {

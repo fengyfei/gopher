@@ -55,6 +55,21 @@ type EntryInfoIterator struct {
 	valid         bool
 }
 
+func copyCurrentShardMap(shard *cacheShard) ([]uint32, int) {
+	shard.lock.RLock()
+
+	var elements = make([]uint32, len(shard.hashmap))
+	next := 0
+
+	for _, index := range shard.hashmap {
+		elements[next] = index
+		next++
+	}
+
+	shard.lock.RUnlock()
+	return elements, next
+}
+
 // SetNext moves to next element and returns true if it exists.
 func (it *EntryInfoIterator) SetNext() bool {
 	it.mutex.Lock()
@@ -69,7 +84,7 @@ func (it *EntryInfoIterator) SetNext() bool {
 	}
 
 	for i := it.currentShard + 1; i < it.cache.config.Shards; i++ {
-		it.elements, it.elementsCount = it.cache.shards[i].copyKeys()
+		it.elements, it.elementsCount = copyCurrentShardMap(it.cache.shards[i])
 
 		// Non empty shard - stick with it
 		if it.elementsCount > 0 {
@@ -85,7 +100,7 @@ func (it *EntryInfoIterator) SetNext() bool {
 }
 
 func newIterator(cache *BigCache) *EntryInfoIterator {
-	elements, count := cache.shards[0].copyKeys()
+	elements, count := copyCurrentShardMap(cache.shards[0])
 
 	return &EntryInfoIterator{
 		cache:         cache,
@@ -105,7 +120,7 @@ func (it *EntryInfoIterator) Value() (EntryInfo, error) {
 		return emptyEntryInfo, ErrInvalidIteratorState
 	}
 
-	entry, err := it.cache.shards[it.currentShard].getEntry(int(it.elements[it.currentIndex]))
+	entry, err := it.cache.shards[it.currentShard].entries.Get(int(it.elements[it.currentIndex]))
 
 	if err != nil {
 		it.mutex.Unlock()

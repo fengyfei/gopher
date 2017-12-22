@@ -2,6 +2,7 @@ package bigcache
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -55,7 +56,7 @@ func newBigCache(config Config, clock clock) (*BigCache, error) {
 	}
 
 	for i := 0; i < config.Shards; i++ {
-		cache.shards[i] = initNewShard(config, onRemove, clock)
+		cache.shards[i] = initNewShard(config, onRemove)
 	}
 
 	if config.CleanWindow > 0 {
@@ -73,30 +74,84 @@ func newBigCache(config Config, clock clock) (*BigCache, error) {
 func (c *BigCache) Get(key string) ([]byte, error) {
 	hashedKey := c.hash.Sum64(key)
 	shard := c.getShard(hashedKey)
-	return shard.get(key, hashedKey)
+	shard.lock.RLock()
+
+	itemIndex := shard.hashmap[hashedKey]
+
+	if itemIndex == 0 {
+		shard.lock.RUnlock()
+		return nil, notFound(key)
+	}
+
+	wrappedEntry, err := shard.entries.Get(int(itemIndex))
+	if err != nil {
+		shard.lock.RUnlock()
+		return nil, err
+	}
+	if entryKey := readKeyFromEntry(wrappedEntry); key != entryKey {
+		if c.config.Verbose {
+			log.Printf("Collision detected. Both %q and %q have the same hash %x", key, entryKey, hashedKey)
+		}
+		shard.lock.RUnlock()
+		return nil, notFound(key)
+	}
+	shard.lock.RUnlock()
+	return readEntry(wrappedEntry), nil
 }
 
 // Set saves entry under the key
 func (c *BigCache) Set(key string, entry []byte) error {
 	hashedKey := c.hash.Sum64(key)
 	shard := c.getShard(hashedKey)
-	return shard.set(key, hashedKey, entry)
+	shard.lock.Lock()
+
+	currentTimestamp := uint64(c.clock.epoch())
+
+	if previousIndex := shard.hashmap[hashedKey]; previousIndex != 0 {
+		if previousEntry, err := shard.entries.Get(int(previousIndex)); err == nil {
+			resetKeyFromEntry(previousEntry)
+		}
+	}
+
+	if oldestEntry, err := shard.entries.Peek(); err == nil {
+		c.onEvict(oldestEntry, currentTimestamp, shard.removeOldestEntry)
+	}
+
+	w := wrapEntry(currentTimestamp, hashedKey, key, entry, &shard.entryBuffer)
+
+	for {
+		if index, err := shard.entries.Push(w); err == nil {
+			shard.hashmap[hashedKey] = uint32(index)
+			shard.lock.Unlock()
+			return nil
+		} else if shard.removeOldestEntry() != nil {
+			shard.lock.Unlock()
+			return fmt.Errorf("Entry is bigger than max shard size.")
+		}
+	}
 }
 
 // Reset empties all cache shards
 func (c *BigCache) Reset() error {
 	for _, shard := range c.shards {
+		shard.lock.Lock()
 		shard.reset(c.config)
+		shard.lock.Unlock()
 	}
+
 	return nil
 }
 
 // Len computes number of entries in cache
 func (c *BigCache) Len() int {
 	var len int
+
 	for _, shard := range c.shards {
+		shard.lock.RLock()
 		len += shard.len()
+		shard.lock.RUnlock()
 	}
+
 	return len
 }
 
@@ -116,7 +171,15 @@ func (c *BigCache) onEvict(oldestEntry []byte, currentTimestamp uint64, evict fu
 
 func (c *BigCache) cleanUp(currentTimestamp uint64) {
 	for _, shard := range c.shards {
-		shard.cleanUp(currentTimestamp)
+		shard.lock.Lock()
+		for {
+			if oldestEntry, err := shard.entries.Peek(); err != nil {
+				break
+			} else if evicted := c.onEvict(oldestEntry, currentTimestamp, shard.removeOldestEntry); !evicted {
+				break
+			}
+		}
+		shard.lock.Unlock()
 	}
 }
 
