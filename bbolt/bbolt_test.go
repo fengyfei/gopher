@@ -39,10 +39,10 @@ import (
 	"time"
 )
 
-var DB *BboltDB
+var db *BboltDB
 
 func init() {
-	DB ,_ = NewBboltDB("user.db",0666,nil)
+	db,_ = NewBboltDB("user.db",0666,nil)
 }
 
 func BenchmarkUserServiceProvider_Put(b *testing.B) {
@@ -50,7 +50,7 @@ func BenchmarkUserServiceProvider_Put(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		name := fmt.Sprintf("test%s", strconv.Itoa(r.Intn(b.N)))
-		err := DB.Put("user", name, value())
+		err := db.Put("user", name, value())
 		if err != nil {
 			log.Printf("create testing: %v", err)
 		}
@@ -61,7 +61,7 @@ func BenchmarkUserServiceProvider_Get(b *testing.B) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < b.N; i++ {
 		name := fmt.Sprintf("test%s", strconv.Itoa(r.Intn(b.N)))
-		DB.Get("user", name)
+		db.Get("user", name)
 	}
 }
 
