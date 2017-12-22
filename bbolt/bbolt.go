@@ -67,7 +67,7 @@ func Open() error {
 	return tx.Commit()
 }
 
-func (usp *UserServiceProvider) Put(buc string, key string, payload string) error {
+func (usp *UserServiceProvider) Put(buc string, key string, payload []byte) error {
 	tx, err := UserDB.Begin(true)
 	if err != nil {
 		log.Printf("[create] begin txn error: %v", err)
@@ -77,7 +77,7 @@ func (usp *UserServiceProvider) Put(buc string, key string, payload string) erro
 
 	bucket := tx.Bucket([]byte(buc))
 
-	if err := bucket.Put([]byte(key), []byte(payload)); err != nil {
+	if err := bucket.Put([]byte(key), payload); err != nil {
 		log.Printf("put error: %v", err)
 		return err
 	}

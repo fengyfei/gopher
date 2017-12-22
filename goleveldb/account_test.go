@@ -41,8 +41,7 @@ import (
 func BenchmarkAccountServiceProvider_Create(b *testing.B) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < b.N; i++ {
-		id := r.Intn(b.N)
-		err := account.AccountService.Create(id, "test", "test")
+		err := account.AccountService.Create(r.Intn(b.N), "test", value())
 		if err != nil {
 			log.Printf("CreateOne testing error: %v\n", err)
 		}
@@ -52,7 +51,10 @@ func BenchmarkAccountServiceProvider_Create(b *testing.B) {
 func BenchmarkAccountServiceProvider_GetRandom(b *testing.B) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < b.N; i++ {
-		id := r.Intn(b.N)
-		account.AccountService.Get(id)
+		account.AccountService.Get(r.Intn(b.N))
 	}
+}
+
+func value() []byte {
+	return make([]byte, 100)
 }

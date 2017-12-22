@@ -30,7 +30,6 @@
 package cache
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/allegro/bigcache"
@@ -59,19 +58,8 @@ func init() {
 	CacheServer = &CacheServiceProvider{}
 }
 
-type User struct {
-	ID   string
-	Name string
-}
-
-func (csp *CacheServiceProvider) SetOne(id, name string) {
+func (csp *CacheServiceProvider) SetOne(id string, name []byte) {
 	CacheInstance.Set(id, []byte(name))
-}
-
-func (csp *CacheServiceProvider) SetMany(id, name string) {
-	for i := 0; i < 10000000; i++ {
-		CacheInstance.Set(id, []byte(name))
-	}
 }
 
 func (csp *CacheServiceProvider) GetOne(id string) (string, error) {
@@ -81,27 +69,4 @@ func (csp *CacheServiceProvider) GetOne(id string) (string, error) {
 	}
 
 	return string(nameByte), nil
-}
-
-func (csp *CacheServiceProvider) GetAll() ([]string, error) {
-	var (
-		results []string
-	)
-
-	for i := 0; i < 10000000; i++ {
-		key := "key" + IntToStr(i)
-
-		nameByte, err := CacheInstance.Get(key)
-		if err != nil {
-			return []string{}, err
-		}
-
-		results = append(results, string(nameByte))
-	}
-
-	return results, nil
-}
-
-func IntToStr(i int) string {
-	return strconv.Itoa(i)
 }

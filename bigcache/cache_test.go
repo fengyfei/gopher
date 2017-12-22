@@ -30,7 +30,9 @@
 package cache_test
 
 import (
-	"log"
+	"fmt"
+	"math/rand"
+	"strconv"
 	"testing"
 
 	"github.com/fengyfei/gopher/bigcache"
@@ -38,32 +40,20 @@ import (
 
 func BenchmarkCacheServiceProvider_SetOne(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		key := "key" + cache.IntToStr(i)
-		cache.CacheServer.SetOne(key, "test")
-	}
-}
-
-func BenchmarkCacheServiceProvider_SetMany(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		key := "key" + cache.IntToStr(i)
-		cache.CacheServer.SetMany(key, "test")
+		cache.CacheServer.SetOne(key(rand.Intn(b.N)), value())
 	}
 }
 
 func BenchmarkCacheServiceProvider_GetOne(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := cache.CacheServer.GetOne("key1")
-		if err != nil {
-			log.Printf("GetOne testing: %s", err.Error())
-		}
+		cache.CacheServer.GetOne(strconv.Itoa(rand.Intn(b.N)))
 	}
 }
 
-func BenchmarkCacheServiceProvider_GetAll(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		_, err := cache.CacheServer.GetAll()
-		if err != nil {
-			log.Printf("GetAll testing: %s", err.Error())
-		}
-	}
+func key(i int) string {
+	return fmt.Sprintf("key-%010d", i)
+}
+
+func value() []byte {
+	return make([]byte, 100)
 }

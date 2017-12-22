@@ -43,7 +43,7 @@ var (
 	IDGen          *UniqueIDGenerator
 )
 
-func (asp *AccountServiceProvider) Create(id int, name string, info string) error {
+func (asp *AccountServiceProvider) Create(id int, name string, info []byte) error {
 	db, err := leveldb.OpenFile("account.db", nil)
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func (asp *AccountServiceProvider) Create(id int, name string, info string) erro
 	defer db.Close()
 
 	idByte := intToByte(int(id))
-	err = db.Put(idByte, []byte(info), nil)
+	err = db.Put(idByte, info, nil)
 	if err != nil {
 		fmt.Printf("Put returned error: %v\n", err)
 		return err

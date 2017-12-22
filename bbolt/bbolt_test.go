@@ -42,7 +42,7 @@ func BenchmarkUserServiceProvider_Put(b *testing.B) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < b.N; i++ {
 		name := fmt.Sprintf("test%s", strconv.Itoa(r.Intn(b.N)))
-		err := UserService.Put("user", name, name)
+		err := UserService.Put("user", name, value())
 		if err != nil {
 			log.Printf("create testing: %v", err)
 		}
@@ -53,9 +53,10 @@ func BenchmarkUserServiceProvider_Get(b *testing.B) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < b.N; i++ {
 		name := fmt.Sprintf("test%s", strconv.Itoa(r.Intn(b.N)))
-		_, err := UserService.Get("user", name)
-		if err != nil {
-			log.Printf("get testing: %v", err)
-		}
+		UserService.Get("user", name)
 	}
+}
+
+func value() []byte {
+	return make([]byte, 100)
 }
