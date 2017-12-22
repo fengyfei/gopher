@@ -36,7 +36,7 @@ import (
 	"github.com/coreos/bbolt"
 )
 
-// Database represent a bolt instance.
+// BboltDB represent a bolt instance.
 type BboltDB struct {
 	path    string
 	db      *bolt.DB
@@ -44,7 +44,7 @@ type BboltDB struct {
 	options *bolt.Options
 }
 
-// NewDatabase creates a new bolt database.
+// NewBboltDB creates a new bolt database.
 func NewBboltDB(path string, mode os.FileMode, options *bolt.Options) (*BboltDB, error) {
 	var (
 		err error
